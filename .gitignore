@@ -22,14 +22,6 @@
 !user/plugins/sample-plugin/
 !user/plugins/sample-toolbar/
 
-# Custom plugins
-!user/plugins/302-instead
-!user/plugins/admin-norecaptcha
-!user/plugins/change-password
-!user/plugins/expiry
-!user/plugins/json-response
-!user/plugins/popular-clicks-extended
-
 # Pages
 pages/*
 !pages/examplepage.php
