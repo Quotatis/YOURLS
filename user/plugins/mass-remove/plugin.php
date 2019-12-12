@@ -114,9 +114,10 @@ function ozh_yourls_linkmr_process() {
         $select = ( $action == 'SELECT' ) ? '`keyword`,`url`' : '';
 
         $table = YOURLS_DB_TABLE_URL;
-        $query = $ydb->get_results("$action $select FROM `$table` WHERE $where");
+        $sql = "$action $select FROM `$table` WHERE $where";
 
         if( $action == 'SELECT' ) {
+                $query = $ydb->fetchObjects($sql);
                 if( !$query ) {
                         echo 'No link found.';
                         return;
@@ -138,6 +139,7 @@ function ozh_yourls_linkmr_process() {
                         echo '<input type="submit" value="OK. Delete" /></form>';
                 }
         } else {
+                $query = $ydb->fetchAffected($sql);
                 echo "Link(s) deleted.";
         }
 }
