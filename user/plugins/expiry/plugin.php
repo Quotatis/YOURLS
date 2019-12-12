@@ -11,7 +11,7 @@ Author URI: https://unfettered.net
 if( !defined( 'YOURLS_ABSPATH' ) ) die();
 
 ini_set('memory_limit','1024M');
-set_time_limit(600);
+set_time_limit(3600);
 /*
  *
  * ADMIN PAGE
@@ -1457,7 +1457,7 @@ function expiry_db_flush( $type )
 
 		// delete every short url that is set to expire
 		case 'killall': // nuke
-			$sql = "SELECT * FROM `".YOURLS_DB_PREFIX."expiry` ORDER BY timestamp DESC";
+			$sql = "SELECT * FROM `".YOURLS_DB_PREFIX."expiry` ORDER BY timestamp ASC";
 			$expiry_list = $ydb->fetchObjects($sql);
 
 			if($expiry_list) {
@@ -1473,7 +1473,7 @@ function expiry_db_flush( $type )
 	    // get rid of expired links that have not been triggered
 		case 'expired':
 		default: 	// expired
-	  	  	$sql = "SELECT * FROM `".YOURLS_DB_PREFIX."expiry` ORDER BY timestamp DESC LIMIT 5000";
+	  	  	$sql = "SELECT * FROM `".YOURLS_DB_PREFIX."expiry` ORDER BY timestamp ASC LIMIT 3000";
 	      	$expiry_list = $ydb->fetchObjects($sql);
 
 	  		if($expiry_list)
