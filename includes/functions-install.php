@@ -237,7 +237,7 @@ function yourls_create_sql_tables() {
 		'`referrer` varchar(200) NOT NULL,'.
 		'`user_agent` varchar(255) NOT NULL,'.
 		'`ip_address` varchar(41) NOT NULL,'.
-		'`country_code` char(2) NOT NULL,'.
+		'`country_code` char(2) NULL,'.
 		'PRIMARY KEY  (`click_id`),'.
 		'KEY `shorturl` (`shorturl`)'.
 		') AUTO_INCREMENT=1 ;';
