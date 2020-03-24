@@ -1976,6 +1976,9 @@ function yourls_get_request($yourls_site = false, $uri = false) {
     }
     if (false === $uri) {
         $uri = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        // Remove standard ports from $uri in case the HOST header is set to include them since they will never be in $yourls_site
+        // See #2613
+        $uri = str_replace( array( ':80', ':443'), '', $uri);
     }
 
     // Even though the config sample states YOURLS_SITE should be set without trailing slash...
@@ -2242,7 +2245,7 @@ function yourls_deprecated_function( $function, $version, $replacement = null ) 
 	yourls_do_action( 'deprecated_function', $function, $replacement, $version );
 
 	// Allow plugin to filter the output error trigger
-	if ( YOURLS_DEBUG && yourls_apply_filter( 'deprecated_function_trigger_error', true ) ) {
+	if ( yourls_get_debug_mode() && yourls_apply_filter( 'deprecated_function_trigger_error', true ) ) {
 		if ( ! is_null( $replacement ) )
 			trigger_error( sprintf( yourls__('%1$s is <strong>deprecated</strong> since version %2$s! Use %3$s instead.'), $function, $version, $replacement ) );
 		else
@@ -2387,6 +2390,16 @@ function yourls_debug_mode($bool) {
     } else {
         error_reporting(E_ERROR | E_PARSE);
     }
+}
+
+/**
+ * Return YOURLS debug mode
+ *
+ * @since 1.7.7
+ * @return bool
+ */
+function yourls_get_debug_mode() {
+    return ( defined( 'YOURLS_DEBUG' ) && YOURLS_DEBUG == true );
 }
 
 /**
