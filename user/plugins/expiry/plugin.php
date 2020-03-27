@@ -3,7 +3,7 @@
 Plugin Name: Expiry
 Plugin URI: https://github.com/joshp23/YOURLS-Expiry
 Description: Will set expiration conditions on your links (or not)
-Version: 1.5.2
+Version: 2.1.3
 Author: Josh Panter
 Author URI: https://unfettered.net
 */
@@ -57,7 +57,7 @@ function expiry_do_page()
 
 	$ciVisChk = ( $options['intercept'] !== 'custome' ? 'none' : 'inline' );
 
-	$unique = ( 'YOURLS_UNIQUE_URLS' == true ) ? ' disabled="disabled" <p><strong>Notice:</strong> <code>YOURLS_UNIQUE_URLS</code> is set to <code>true</code>. This value must be set to <code>false</code> to use this function.</p>' : ' > Use a global post-expiration URL?';
+	$unique = ( YOURLS_UNIQUE_URLS == true ) ? ' disabled="disabled" <p><strong>Notice:</strong> <code>YOURLS_UNIQUE_URLS</code> is set to <code>true</code>. This value must be set to <code>false</code> to use this function.</p>' : ' > Use a global post-expiration URL?';
 
 	if( $options['gpx_chk'] == 'false' )
   {
@@ -487,45 +487,76 @@ function expiry_stats_admin($start) {
 // Change Admin page New URL submission form
 yourls_add_filter( 'shunt_html_addnew', 'expiry_override_html_addnew' );
 function expiry_override_html_addnew( $shunt, $url, $keyword ) {
-	?>
+	
+	$opt = expiry_config();
+	$e_p = $c_c = $t_t = 'none';
+	$gn = $gt = $gc = $aV = $aMn = $aMh = $aMm = $aMd = $aMw = $cV = NULL;
+	switch ( $opt[9] ) {
+		case 'click':
+			$e_p = $c_c = 'style';
+			$gc = 'selected="selected"';
+			$cV = $opt[8];
+			break;
+		case 'clock':
+			$e_p = $t_t = 'style';
+			$gt = 'selected="selected"';
+			$aV = $opt[6];
+			switch ( $opt[7] ) {
+				case 'min':
+					$aMm = 'selected="selected"';
+					break;
+				case 'hour':
+					$aMh = 'selected="selected"';
+					break;
+				case 'week':
+					$aMw = 'selected="selected"';
+					break;
+				default:
+					$aMd = 'selected="selected"';
+			}
+			break;
+		default:
+			$gn = $aMn = 'selected="selected"';
+	}
+?>
 	<main role="main">
 	<div id="new_url">
 		<div>
 			<form id="new_url_form" action="" method="get">
 				<div>
 					<strong><?php yourls_e( 'Enter the URL' ); ?></strong>:
-					<input type="text" id="add-url" name="url" value="<?php echo $url; ?>" class="text" size="80" placeholder="http://" />
+					<input type="text" id="add-url" name="url" value="<?php echo $url; ?>" class="text" size="80" placeholder="https://" />
 					<?php yourls_e( 'Optional '); ?> : <strong><?php yourls_e('Custom short URL'); ?></strong>:<input type="text" id="add-keyword" name="keyword" value="<?php echo $keyword; ?>" class="text" size="8" />
 					<?php yourls_nonce_field( 'add_url', 'nonce-add' ); ?>
 					<input type="button" id="add-button" name="add-button" value="<?php yourls_e( 'Shorten The URL' ); ?>" class="button" onclick="add_link_expiry();" />
 					</br>
 					<label for="expiry"><strong>Short Link Expiration Type</strong>:</label>
 					<select name="expiry" id="expiry" data-role="slider" > Select One
-						<option value="" selected="selected">None</option>
-						<option value="clock">Timer</option>
-						<option value="click" >Click Counter</option>
+						<option value="" <?php echo $gn; ?> >None</option>
+						<option value="clock" <?php echo $gt; ?> >Timer</option>
+						<option value="click" <?php echo $gc; ?> >Click Counter</option>
 					</select>
-					<div id="expiry_params" style="padding-left: 10pt;border-left:1px solid blue;border-bottom:1px solid blue;display:none;">
+					<div id="expiry_params" style="padding-left: 10pt;border-left:1px solid blue;border-bottom:1px solid blue;display:<?php echo $e_p; ?>;">
 						<div style="margin:auto;width:150px;text-align:left;" >
-							<div id="tick_tock" style="display:none">
+							<div id="tick_tock" style="display:<?php echo $t_t; ?>">
 								<input style="width:50px;" type="number" name="age" id="age" value="" min="0">
 									<select name="mod" id="mod" size="1" >
-										<option value="" selected="selected">Select One</option>
-										<option value="min">Minutes</option>
-										<option value="hour">Hours</option>
-										<option value="day" >Days</option>
-										<option value="week">Weeks</option>
+										<option value="" <?php echo $aMn; ?> >Select One</option>
+										<option value="min" <?php echo $aMm; ?> >Minutes</option>
+										<option value="hour" <?php echo $aMh; ?>>Hours</option>
+										<option value="day" <?php echo $aMd; ?> >Days</option>
+										<option value="week" <?php echo $aMw; ?> >Weeks</option>
 									</select>
 							</div>
-							<div id="clip_clop" style="display:none">
-								<input  style="width:50px;" type="number" name="count" id="count" min="0" > Click limit.
+							<div id="clip_clop" style="display:<?php echo $c_c; ?>">
+								<input  style="width:50px;" type="number" name="count" id="count" value="<?php echo $cV; ?>" min="0"> Click limit.
 							</div>
 						</div>
 						<input type="text" id="postx" name="postx" class="text" size="40" placeholder="leave blank for none"/> <strong>Fallback URL</strong>
 					</div>
 				</div>
 			</form>
-				<div id="feedback" style="display:none"></div>
+			<div id="feedback" style="display:none"></div>
 		</div>
 		<?php yourls_do_action( 'html_addnew' ); ?>
 	</div>
@@ -720,7 +751,7 @@ function expiry_check( $args )
 {
 
 	global $ydb;
-
+	
 	$keyword = $args[1]; // Keyword for this request
 	$sql = "SELECT * FROM `".YOURLS_DB_PREFIX."expiry` WHERE `keyword` = :keyword";
 	$binds = array('keyword' => $keyword);
@@ -738,7 +769,7 @@ function expiry_check( $args )
 			$link = $stats['link'];
 			$clicks = $link['clicks'];
 
-			if ( $clicks >= $count )
+				if ( $clicks >= $count )
       		{
 				$result = 'click-bomb';
 			}
@@ -789,15 +820,15 @@ function expiry_check( $args )
 function expiry_router($keyword, $result, $postx)
 {
 	// try to edit maybe
-	if ( $postx !== null && $postx !=='' && $postx !== 'none')
+	if ( $postx !== null && $postx !=='' && $postx !== 'none' && $postx !== 'false')
 	{
-		$switch = yourls_edit_link( $postx, $keyword );
-
-		if( $switch['status'] == 'success' )
+		if( yourls_edit_link( $postx, $keyword, $keyword ) )
     	{
-			expiry_cleanup( $keyword, $result );
-			if ( !yourls_is_api() ) {
-				yourls_redirect_(YOURLS_SITE . '/' . $keyword, 302);
+    		$args[0] = $keyword;
+			expiry_cleanup( $args );
+
+			if ( !yourls_is_api() && !defined('EXPIRY_CLI')) {
+				yourls_redirect($postx, 302);
 				die();
 			}
 		} else {
@@ -808,7 +839,7 @@ function expiry_router($keyword, $result, $postx)
   	{
     	yourls_delete_link_by_keyword( $keyword );
 
-		if ( !yourls_is_api() )
+		if ( !yourls_is_api() && !defined('EXPIRY_CLI'))
     	{
 			$expiry_intercept = yourls_get_option( 'expiry_intercept' );
 			switch ($expiry_intercept)
@@ -1473,7 +1504,15 @@ function expiry_db_flush( $type )
 	    // get rid of expired links that have not been triggered
 		case 'expired':
 		default: 	// expired
-	  	  	$sql = "SELECT * FROM `".YOURLS_DB_PREFIX."expiry` ORDER BY timestamp ASC LIMIT 3000";
+
+			$time = time();
+			$sql = "SELECT exp.* FROM ".YOURLS_DB_PREFIX."expiry exp";
+			$sql .= " INNER JOIN ".YOURLS_DB_PREFIX."url yu ON yu.keyword = exp.keyword";
+			$sql .= " WHERE (exp.type = 'clock' AND (exp.timestamp + exp.shelflife) < ".$time.")";
+			$sql .= " OR (exp.type = 'click' AND yu.clicks >= exp.click)";
+			$sql .= " ORDER BY exp.timestamp ASC";
+			//$sql .= " LIMIT 3000";
+
 	      	$expiry_list = $ydb->fetchObjects($sql);
 
 	  		if($expiry_list)
@@ -1495,10 +1534,21 @@ function expiry_db_flush( $type )
 yourls_add_action( 'delete_link', 'expiry_cleanup' );	// cleanup on keyword deletion
 function expiry_cleanup( $args ) {
 	global $ydb;
-  $keyword = $args[0]; // Keyword to delete
+	$keyword = $args[0]; // Keyword to delete
 	// Delete the expiry data, no need for it anymore
 	$binds = array(	'keyword' => $keyword);
 	$sql = "DELETE FROM `".YOURLS_DB_PREFIX."expiry` WHERE `keyword` = :keyword";
 	$ydb->fetchAffected($sql, $binds);
+}
 
+
+function expiry_prune_inc_auth( $var ) {
+	// Check signature against all possible users
+	global $yourls_user_passwords;
+	foreach( $yourls_user_passwords as $valid_user => $valid_password )
+		if ( yourls_auth_signature( $valid_user ) === $var ) {
+			yourls_set_user( $valid_user );
+			return true;
+		}
+	return false;
 }
